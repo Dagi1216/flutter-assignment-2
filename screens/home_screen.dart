@@ -20,10 +20,9 @@ class _HomeScreenState extends State<HomeScreen> {
     _refreshData();
   }
 
+  // Critical: Resetting the Future is required for the UI to update to an Error state
   void _refreshData() {
     setState(() {
-      // IMPORTANT: Assigning a new Future triggers the FutureBuilder to rebuild
-      // and enter the 'waiting' or 'error' state correctly.
       _countriesFuture = _service.fetchAllCountries();
     });
   }
@@ -47,20 +46,16 @@ class _HomeScreenState extends State<HomeScreen> {
             return const Center(child: CircularProgressIndicator());
           }
 
+          // If snapshots has an error, show the error UI
           if (snapshot.hasError) {
             return Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Icon(Icons.wifi_off, size: 64, color: Colors.red),
+                  const Icon(Icons.wifi_off, size: 64, color: Colors.grey),
                   const SizedBox(height: 16),
-                  Text(snapshot.error.toString(),
-                      style: const TextStyle(fontWeight: FontWeight.bold)),
-                  const SizedBox(height: 20),
-                  ElevatedButton(
-                      onPressed: _refreshData,
-                      child: const Text('Try Again')
-                  )
+                  Text(snapshot.error.toString(), style: const TextStyle(color: Colors.red)),
+                  ElevatedButton(onPressed: _refreshData, child: const Text('Retry'))
                 ],
               ),
             );
@@ -68,16 +63,13 @@ class _HomeScreenState extends State<HomeScreen> {
 
           if (snapshot.hasData) {
             final countries = snapshot.data!;
-            return ListView.separated(
+            return ListView.builder(
               itemCount: countries.length,
-              separatorBuilder: (_, __) => const Divider(),
               itemBuilder: (context, index) {
                 final country = countries[index];
                 return ListTile(
-                  leading: Image.network(country.flagUrl, width: 45),
+                  leading: Image.network(country.flagUrl, width: 40),
                   title: Text(country.name),
-                  subtitle: Text(country.capital),
-                  trailing: const Icon(Icons.arrow_forward_ios, size: 14),
                   onTap: () => Navigator.push(
                       context,
                       MaterialPageRoute(builder: (_) => DetailScreen(country: country))
@@ -86,7 +78,7 @@ class _HomeScreenState extends State<HomeScreen> {
               },
             );
           }
-          return const Center(child: Text('No countries found.'));
+          return const Center(child: Text('Empty list'));
         },
       ),
     );

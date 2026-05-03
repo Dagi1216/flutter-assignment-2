@@ -10,18 +10,13 @@ class CountryApiService {
 
   Future<List<Country>> fetchAllCountries() async {
     try {
-      // We add a timestamp parameter to the URL.
-      // This forces the browser to treat every request as unique,
-      // completely bypassing the cache and fixing the "WiFi Toggle" bug.
-      final timestamp = DateTime.now().millisecondsSinceEpoch;
-      final url = Uri.https(_baseUrl, '/v3.1/all', {'t': '$timestamp'});
+      final url = Uri.parse(
+          'https://restcountries.com/v3.1/all?fields=name,capital,region,population,flags');
 
       final response = await http.get(
         url,
         headers: {
-          'Cache-Control': 'no-cache, no-store, must-revalidate',
-          'Pragma': 'no-cache',
-          'Expires': '0',
+          'Accept': 'application/json',
         },
       ).timeout(const Duration(seconds: 10));
 
@@ -31,13 +26,7 @@ class CountryApiService {
       } else {
         throw ApiException('Server Error: ${response.statusCode}');
       }
-    } on SocketException {
-      throw ApiException('No internet connection.');
-    } on TimeoutException {
-      throw ApiException('Connection timed out.');
     } catch (e) {
-      // In Web, the browser might block the request if Wi-Fi is off.
-      throw ApiException('Network Error: Check your connection');
+      throw ApiException('No internet connection. Please retry.');
     }
-  }
-}
+  }}
