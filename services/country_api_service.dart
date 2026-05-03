@@ -19,7 +19,6 @@ class CountryApiService {
           'Accept': 'application/json',
         },
       ).timeout(const Duration(seconds: 10));
-
       if (response.statusCode == 200) {
         final List<dynamic> data = json.decode(response.body);
         return data.map((item) => Country.fromJson(item)).toList();
